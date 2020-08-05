@@ -1,22 +1,23 @@
-// nvcc .\ising_parallel_new.cu -lgdi32 -luser32
+// magick convert image.pbm result.png
 
 #include <cuda.h>
 #include <curand.h>
 #include <curand_kernel.h>
-#include <windows.h>
 #include <Math.h>
 #include <cstdio>
 #include <ctime>
+#include <iostream>
+#include <fstream>
 
-#define BLOCKS 2304
+#define BLOCKS 16384
 #define THREADS 1024
 
-#define N 1536
+#define N 4096
 
 #define SWEEPS 100
 
 // Tc = 2.269
-#define TEMP 0.1
+#define TEMP 1
 #define J 1
 
 #define UP ((i - 1 + N) % N) * N + j
@@ -45,12 +46,15 @@ __global__ void metropolis_step(int *spins, int reminder, int offset){
 	__syncthreads();
 }
 
+int arrIdx(int i, int j){
+	return i * N + j;
+}
 
 int main(void){
 // Host variables
 	int size_i = n * n * sizeof(int);
 	lattice = new int[n * n], lattice_start = new int[n * n];
-
+    std::ofstream pbm;
 // Device variables
 	int *lattice_d;	
 	
@@ -73,7 +77,16 @@ int main(void){
 	}
 	cudaMemcpy(lattice, lattice_d, size_i, cudaMemcpyDeviceToHost);
 	givemetime = time(NULL);
-	printf("%s", ctime(&givemetime));
+    printf("%s", ctime(&givemetime));
+    pbm.open ("output.pbm");
+    pbm << "P1\n" << N << " " << N << "\n";
+    for (int i = 0; i < N; i++){
+        for (int j = 0; j < N; j++){
+            if (lattice[arrIdx(i, j)] == 1) pbm << 1;
+            else pbm << 0;
+        }
+    }
+    pbm.close();
 	cudaFree(lattice_d);
 	return 0;
 }
