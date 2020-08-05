@@ -7,12 +7,13 @@
 #include <cstdio>
 #include <ctime>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 
-#define BLOCKS 16384
+#define BLOCKS 1024
 #define THREADS 1024
 
-#define N 4096
+#define N 1024
 
 #define SWEEPS 100
 
@@ -37,12 +38,10 @@ __global__ void metropolis_step(int *spins, int reminder, int offset){
 	curandState state;
 	curand_init((unsigned long long)clock() + idx, 0, 0, &state);
 	int j = idx % N, i = (idx - j) / N;
-	//if ((i + j) % 2 == reminder){
 	if ((i+offset) % 3 == reminder && j % 3 == reminder){
 		int H = -(J) * spins[idx] * (spins[UP] + spins[DOWN] + spins[LEFT] + spins[RIGHT] + (spins[UPLEFT] + spins[UPRIGHT] + spins[DOWNLEFT] + spins[DOWNRIGHT]) / powf(sqrtf(2), 3));
 		if (H > 0 || curand_uniform(&state) < expf(2 * H / TEMP)) spins[idx] *= -1;
 	}
-	//}
 	__syncthreads();
 }
 
@@ -54,7 +53,8 @@ int main(void){
 // Host variables
 	int size_i = n * n * sizeof(int);
 	lattice = new int[n * n], lattice_start = new int[n * n];
-    std::ofstream pbm;
+	std::ofstream pbm;
+	std::clock_t timer;
 // Device variables
 	int *lattice_d;	
 	
@@ -65,10 +65,10 @@ int main(void){
 		else lattice[i] = -1;
 		lattice_start[i] = lattice[i];
 	}
-	cudaMemcpy(lattice_d, lattice, size_i, cudaMemcpyHostToDevice);
 
-	time_t givemetime = time(NULL);
-	printf("%s", ctime(&givemetime));
+	timer = clock();
+
+	cudaMemcpy(lattice_d, lattice, size_i, cudaMemcpyHostToDevice);
 
 	for (int i = 0; i < SWEEPS; i++){
 		for (int offset = 0; offset < 3; offset++){
@@ -76,8 +76,7 @@ int main(void){
 		}
 	}
 	cudaMemcpy(lattice, lattice_d, size_i, cudaMemcpyDeviceToHost);
-	givemetime = time(NULL);
-    printf("%s", ctime(&givemetime));
+	std::cout << std::setprecision(5) << (clock() - timer) / (double) CLOCKS_PER_SEC << " sec";
     pbm.open ("output.pbm");
     pbm << "P1\n" << N << " " << N << "\n";
     for (int i = 0; i < N; i++){

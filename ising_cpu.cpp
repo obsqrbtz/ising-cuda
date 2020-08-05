@@ -37,6 +37,7 @@ int main(void) {
 	int size_i = n * n * sizeof(int);
 	lattice = new int[n * n], lattice_start = new int[n * n];
 	std::ofstream pbm;
+	std::clock_t timer;
 
 	for (int i = 0; i < n * n; i++) {
 		if ((((double)rand() / (RAND_MAX))) < 0.5) lattice[i] = 1;
@@ -44,8 +45,7 @@ int main(void) {
 		lattice_start[i] = lattice[i];
 	}
 
-	time_t givemetime = time(NULL);
-	printf("%s", ctime(&givemetime));
+	timer = clock();
 
 	for (int k = 0; k < SWEEPS; k++) {
 		for (int idx = 0; idx < N * N; idx++) {
@@ -54,8 +54,9 @@ int main(void) {
 			if (H > 0 || (((double)rand() / (RAND_MAX))) < expf(2 * H / TEMP)) lattice[idx] *= -1;
 		}
 	}
-	givemetime = time(NULL);
-	printf("%s", ctime(&givemetime));
+	
+	std::cout << std::setprecision(5) << (clock() - timer) / (double) CLOCKS_PER_SEC << " sec";
+	
     pbm.open ("output_cpu.pbm");
     pbm << "P1\n" << N << " " << N << "\n";
     for (int i = 0; i < N; i++){
