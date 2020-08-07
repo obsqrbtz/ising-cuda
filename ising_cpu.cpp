@@ -58,7 +58,7 @@ int main(void) {
 
 	std::cout << std::setprecision(5) << (clock() - timer) / (double) CLOCKS_PER_SEC << " sec";
 	
-    /*pbm.open ("output_cpu.pbm");
+    pbm.open ("output_cpu.pbm");
     pbm << "P1\n" << N << " " << N << "\n";
     for (int i = 0; i < N; i++){
         for (int j = 0; j < N; j++){
@@ -66,7 +66,7 @@ int main(void) {
             else pbm << 0;
         }
     }
-    pbm.close();*/
+    pbm.close();
 	return 0;
 
 }
