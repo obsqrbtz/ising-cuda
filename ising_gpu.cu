@@ -10,10 +10,10 @@
 #include <iomanip>
 #include <fstream>
 
-#define BLOCKS 1024
+#define BLOCKS 576
 #define THREADS 1024
 
-#define N 1024
+#define N 768
 
 #define SWEEPS 100
 

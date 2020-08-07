@@ -5,10 +5,11 @@
 #include <ctime>
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 
 #pragma warning(disable : 4996)
 
-#define N 4096
+#define N 768
 
 #define SWEEPS 100
 
@@ -54,10 +55,10 @@ int main(void) {
 			if (H > 0 || (((double)rand() / (RAND_MAX))) < expf(2 * H / TEMP)) lattice[idx] *= -1;
 		}
 	}
-	
+
 	std::cout << std::setprecision(5) << (clock() - timer) / (double) CLOCKS_PER_SEC << " sec";
 	
-    pbm.open ("output_cpu.pbm");
+    /*pbm.open ("output_cpu.pbm");
     pbm << "P1\n" << N << " " << N << "\n";
     for (int i = 0; i < N; i++){
         for (int j = 0; j < N; j++){
@@ -65,7 +66,7 @@ int main(void) {
             else pbm << 0;
         }
     }
-    pbm.close();
+    pbm.close();*/
 	return 0;
 
 }
