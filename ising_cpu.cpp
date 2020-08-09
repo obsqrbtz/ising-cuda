@@ -9,7 +9,7 @@
 
 #pragma warning(disable : 4996)
 
-#define N 768
+#define N 1024
 
 #define SWEEPS 100
 
@@ -26,7 +26,7 @@
 #define DOWNLEFT ((i + 1) % N) * N + (j - 1 + N) % N
 #define DOWNRIGHT ((i + 1) % N) * N + (j + 1) % N
 
-int *lattice, *lattice_start;
+int *lattice;
 int n = N;
 
 int arrIdx(int i, int j){
@@ -36,17 +36,16 @@ int arrIdx(int i, int j){
 int main(void) {
 	// Host variables
 	int size_i = n * n * sizeof(int);
-	lattice = new int[n * n], lattice_start = new int[n * n];
+	lattice = new int[n * n];
 	std::ofstream pbm;
 	std::clock_t timer;
+
+	timer = clock();
 
 	for (int i = 0; i < n * n; i++) {
 		if ((((double)rand() / (RAND_MAX))) < 0.5) lattice[i] = 1;
 		else lattice[i] = -1;
-		lattice_start[i] = lattice[i];
 	}
-
-	timer = clock();
 
 	for (int k = 0; k < SWEEPS; k++) {
 		for (int idx = 0; idx < N * N; idx++) {
@@ -56,7 +55,7 @@ int main(void) {
 		}
 	}
 
-	std::cout << std::setprecision(5) << (clock() - timer) / (double) CLOCKS_PER_SEC << " sec";
+	std::cout << std::setprecision(5) <<(clock() - timer) / (double) CLOCKS_PER_SEC << "s";
 	
     pbm.open ("output_cpu.pbm");
     pbm << "P1\n" << N << " " << N << "\n";
