@@ -36,7 +36,8 @@ int arrIdx(int i, int j){
 int main(void) {
 	// Host variables
 	int size_i = n * n * sizeof(int);
-	lattice = new int[n * n];
+	lattice = new int[n * n]
+	;
 	std::ofstream pbm;
 	std::clock_t timer;
 
@@ -49,7 +50,8 @@ int main(void) {
 
 	for (int k = 0; k < SWEEPS; k++) {
 		for (int idx = 0; idx < N * N; idx++) {
-			int i = idx / N, j = idx % N, H = -(J) * lattice[idx] * (lattice[UP] + lattice[DOWN] + lattice[LEFT] + lattice[RIGHT] 
+			int i = idx / N, j = idx % N;
+			float H = -(J) * lattice[idx] * (lattice[UP] + lattice[DOWN] + lattice[LEFT] + lattice[RIGHT] 
 			+ (lattice[UPLEFT] + lattice[UPRIGHT] + lattice[DOWNLEFT] + lattice[DOWNRIGHT]) / powf(sqrtf(2), 3));
 			if (H > 0 || (((double)rand() / (RAND_MAX))) < expf(2 * H / TEMP)) lattice[idx] *= -1;
 		}

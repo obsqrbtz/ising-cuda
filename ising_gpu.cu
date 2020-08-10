@@ -1,4 +1,5 @@
 // magick convert image.pbm result.png
+// add magnetic field with the mouse pointer
 
 #include <cuda.h>
 #include <curand.h>
@@ -39,7 +40,7 @@ __global__ void metropolis_step(int *spins, int reminder, int offset){
 	curand_init((unsigned long long)clock() + idx, 0, 0, &state);
 	int j = idx % N, i = (idx - j) / N;
 	if ((i+offset) % 3 == reminder && j % 3 == reminder){
-		int H = -(J) * spins[idx] * (spins[UP] + spins[DOWN] + spins[LEFT] + spins[RIGHT] + (spins[UPLEFT] + spins[UPRIGHT] + spins[DOWNLEFT] + spins[DOWNRIGHT]) / powf(sqrtf(2), 3));
+		float H = -(J) * spins[idx] * (spins[UP] + spins[DOWN] + spins[LEFT] + spins[RIGHT] + (spins[UPLEFT] + spins[UPRIGHT] + spins[DOWNLEFT] + spins[DOWNRIGHT]) / powf(sqrtf(2), 3));
 		if (H > 0 || curand_uniform(&state) < expf(2 * H / TEMP)) spins[idx] *= -1;
 	}
 	__syncthreads();
