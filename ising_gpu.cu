@@ -11,10 +11,10 @@
 #include <iomanip>
 #include <fstream>
 
-#define BLOCKS 1024
+#define BLOCKS 16384
 #define THREADS 1024
 
-#define N 1024
+#define N 4096
 
 #define SWEEPS 100
 
@@ -33,6 +33,15 @@
 
 int *lattice;
 int n = N;
+
+__global__ void init(int *spins){
+	int idx = threadIdx.x + blockIdx.x * blockDim.x;
+	curandState state;
+	curand_init((unsigned long long)clock() + idx, 0, 0, &state);
+	if (curand_uniform(&state) < 0.5) spins[idx] = 1;
+	else spins[idx] = -1;
+	__syncthreads();
+}
 
 __global__ void metropolis_step(int *spins, int reminder, int offset){
 	int idx = threadIdx.x + blockIdx.x * blockDim.x;
@@ -63,13 +72,7 @@ int main(void){
 	
 	cudaMalloc((void**)&lattice_d, size_i);
 
-	for (int i = 0; i < n * n; i++){
-		if ((((double) rand() / (RAND_MAX))) < 0.5) lattice[i] = 1;
-		else lattice[i] = -1;
-	}
-
-	cudaMemcpy(lattice_d, lattice, size_i, cudaMemcpyHostToDevice);
-
+	init<<<BLOCKS, THREADS>>>(lattice_d);
 	for (int i = 0; i < SWEEPS; i++){
 		for (int offset = 0; offset < 3; offset++){
 			for (int reminder = 0; reminder < 3; reminder++) metropolis_step<<<BLOCKS, THREADS>>>(lattice_d, reminder, offset);
