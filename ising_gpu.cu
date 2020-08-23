@@ -66,7 +66,7 @@ int main(void){
 		if (SHOW_PROGRESSBAR){
 			std::cout << " [";
 			int pos = barWidth * progress;
-			for (int k = 0; k < barWidth; ++k) {
+			for (int k = 0; k < barWidth; k++) {
 				if (k < pos) std::cout << "=";
 				else if (k == pos) std::cout << ">";
 				else std::cout << " ";
