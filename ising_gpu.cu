@@ -10,26 +10,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-
-#define BLOCKS 16384
-#define THREADS 1024
-
-#define N 4096
-
-#define SWEEPS 100
-
-// Tc = 2.269
-#define TEMP 1
-#define J 1
-
-#define UP ((i - 1 + N) % N) * N + j
-#define DOWN ((i + 1) % N) * N + j
-#define LEFT i * N + (j - 1 + N) % N
-#define RIGHT i * N + (j + 1) % N
-#define UPLEFT ((i - 1 + N) % N) * N + (j - 1 + N) % N
-#define UPRIGHT ((i - 1 + N) % N) * N + (j + 1) % N
-#define DOWNLEFT ((i + 1) % N) * N + (j - 1 + N) % N
-#define DOWNRIGHT ((i + 1) % N) * N + (j + 1) % N
+#include "defines.h"
 
 int *lattice;
 int n = N;
@@ -45,6 +26,7 @@ __global__ void init(int *spins){
 
 __global__ void metropolis_step(int *spins, int reminder, int offset){
 	int idx = threadIdx.x + blockIdx.x * blockDim.x;
+// TODO: create __device__ function for random number generation
 	curandState state;
 	curand_init((unsigned long long)clock() + idx, 0, 0, &state);
 	int j = idx % N, i = (idx - j) / N;
@@ -61,7 +43,8 @@ int arrIdx(int i, int j){
 
 int main(void){
 // Host variables
-	int size_i = n * n * sizeof(int);
+	float progress = 0.0;
+	int size_i = n * n * sizeof(int), barWidth = 70;
 	lattice = new int[n * n];
 	std::ofstream pbm;
 	std::clock_t timer;
@@ -72,23 +55,42 @@ int main(void){
 	
 	cudaMalloc((void**)&lattice_d, size_i);
 
+	std::cout << std::setprecision(5) << " \n cudaMalloc: " << (clock() - timer) / (double) CLOCKS_PER_SEC << "s\n\n";
+
 	init<<<BLOCKS, THREADS>>>(lattice_d);
+	
 	for (int i = 0; i < SWEEPS; i++){
 		for (int offset = 0; offset < 3; offset++){
 			for (int reminder = 0; reminder < 3; reminder++) metropolis_step<<<BLOCKS, THREADS>>>(lattice_d, reminder, offset);
 		}
+		if (SHOW_PROGRESSBAR){
+			std::cout << " [";
+			int pos = barWidth * progress;
+			for (int k = 0; k < barWidth; ++k) {
+				if (k < pos) std::cout << "=";
+				else if (k == pos) std::cout << ">";
+				else std::cout << " ";
+			}
+			std::cout << "] " << int(progress * 100.0) << " %\r";
+			std::cout.flush();
+			progress += 1.0f / (SWEEPS - 1);
+		}
 	}
 	cudaMemcpy(lattice, lattice_d, size_i, cudaMemcpyDeviceToHost);
-	std::cout << std::setprecision(5) << (clock() - timer) / (double) CLOCKS_PER_SEC << "s";
-    pbm.open ("output.pbm");
-    pbm << "P1\n" << N << " " << N << "\n";
-    for (int i = 0; i < N; i++){
-        for (int j = 0; j < N; j++){
-            if (lattice[arrIdx(i, j)] == 1) pbm << 1;
-            else pbm << 0;
-        }
-    }
-    pbm.close();
+	std::cout << std::setprecision(5) << "\n\n total: "  << (clock() - timer) / (double) CLOCKS_PER_SEC << "s \n\n";
+	
+	if (EXPORT_PBM){
+		pbm.open ("output.pbm");
+		pbm << "P1\n" << N << " " << N << "\n";
+		for (int i = 0; i < N; i++){
+			for (int j = 0; j < N; j++){
+				if (lattice[arrIdx(i, j)] == 1) pbm << 1;
+				else pbm << 0;
+			}
+		}
+		pbm.close();
+	}
+
 	cudaFree(lattice_d);
 	return 0;
 }

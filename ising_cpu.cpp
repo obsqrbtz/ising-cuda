@@ -6,25 +6,9 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include "defines.h"
 
 #pragma warning(disable : 4996)
-
-#define N 1024
-
-#define SWEEPS 100
-
-// Tc = 2.269
-#define TEMP 1
-#define J 1
-
-#define UP ((i - 1 + N) % N) * N + j
-#define DOWN ((i + 1) % N) * N + j
-#define LEFT i * N + (j - 1 + N) % N
-#define RIGHT i * N + (j + 1) % N
-#define UPLEFT ((i - 1 + N) % N) * N + (j - 1 + N) % N
-#define UPRIGHT ((i - 1 + N) % N) * N + (j + 1) % N
-#define DOWNLEFT ((i + 1) % N) * N + (j - 1 + N) % N
-#define DOWNRIGHT ((i + 1) % N) * N + (j + 1) % N
 
 int *lattice;
 int n = N;
@@ -35,7 +19,8 @@ int arrIdx(int i, int j){
 
 int main(void) {
 	// Host variables
-	int size_i = n * n * sizeof(int);
+	float progress = 0.0;
+	int size_i = n * n * sizeof(int), barWidth = 70;;
 	lattice = new int[n * n]
 	;
 	std::ofstream pbm;
@@ -55,19 +40,32 @@ int main(void) {
 			+ (lattice[UPLEFT] + lattice[UPRIGHT] + lattice[DOWNLEFT] + lattice[DOWNRIGHT]) / powf(sqrtf(2), 3));
 			if (H > 0 || (((double)rand() / (RAND_MAX))) < expf(2 * H / TEMP)) lattice[idx] *= -1;
 		}
+		if (SHOW_PROGRESSBAR){
+			std::cout << " [";
+			int pos = barWidth * progress;
+			for (int k = 0; k < barWidth; ++k) {
+				if (k < pos) std::cout << "=";
+				else if (k == pos) std::cout << ">";
+				else std::cout << " ";
+			}
+			std::cout << "] " << int(progress * 100.0) << " %\r";
+			std::cout.flush();
+			progress += 1.0f / (SWEEPS - 1);
+		}
 	}
 
-	std::cout << std::setprecision(5) <<(clock() - timer) / (double) CLOCKS_PER_SEC << "s";
-	
-    pbm.open ("output_cpu.pbm");
-    pbm << "P1\n" << N << " " << N << "\n";
-    for (int i = 0; i < N; i++){
-        for (int j = 0; j < N; j++){
-            if (lattice[arrIdx(i, j)] == 1) pbm << 1;
-            else pbm << 0;
-        }
-    }
-    pbm.close();
+	std::cout << std::setprecision(5) << "\n\n" << (clock() - timer) / (double) CLOCKS_PER_SEC << "s\n\n";
+	if (EXPORT_PBM){
+		pbm.open ("output_cpu.pbm");
+		pbm << "P1\n" << N << " " << N << "\n";
+		for (int i = 0; i < N; i++){
+			for (int j = 0; j < N; j++){
+				if (lattice[arrIdx(i, j)] == 1) pbm << 1;
+				else pbm << 0;
+			}
+		}
+		pbm.close();
+	}
 	return 0;
 
 }
