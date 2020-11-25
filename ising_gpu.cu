@@ -1,5 +1,4 @@
 // magick convert image.pbm result.png
-// add magnetic field with the mouse pointer
 
 #include <cuda.h>
 #include <curand.h>
@@ -15,24 +14,25 @@
 int *lattice;
 int n = N;
 
-__global__ void init(int *spins){
-	int idx = threadIdx.x + blockIdx.x * blockDim.x;
+__device__ float rand_d(int idx){
 	curandState state;
 	curand_init((unsigned long long)clock() + idx, 0, 0, &state);
-	if (curand_uniform(&state) < 0.5) spins[idx] = 1;
+	return curand_uniform(&state);
+}
+
+__global__ void init(int *spins){
+	int idx = threadIdx.x + blockIdx.x * blockDim.x;
+	if (rand_d(idx) < 0.5) spins[idx] = 1;
 	else spins[idx] = -1;
 	__syncthreads();
 }
-
+// pow(sqrt(2), 3) = 2.828427124746f
 __global__ void metropolis_step(int *spins, int reminder, int offset){
 	int idx = threadIdx.x + blockIdx.x * blockDim.x;
-// TODO: create __device__ function for random number generation
-	curandState state;
-	curand_init((unsigned long long)clock() + idx, 0, 0, &state);
 	int j = idx % N, i = (idx - j) / N;
 	if ((i+offset) % 3 == reminder && j % 3 == reminder){
-		float H = -(J) * spins[idx] * (spins[UP] + spins[DOWN] + spins[LEFT] + spins[RIGHT] + (spins[UPLEFT] + spins[UPRIGHT] + spins[DOWNLEFT] + spins[DOWNRIGHT]) / powf(sqrtf(2), 3));
-		if (H > 0 || curand_uniform(&state) < expf(2 * H / TEMP)) spins[idx] *= -1;
+		float H = -(J) * spins[idx] * (spins[UP] + spins[DOWN] + spins[LEFT] + spins[RIGHT] + (spins[UPLEFT] + spins[UPRIGHT] + spins[DOWNLEFT] + spins[DOWNRIGHT]) / 2.828427124746f);
+		if (H > 0 || rand_d(idx) < expf(2 * H / TEMP)) spins[idx] *= -1;
 	}
 	__syncthreads();
 }
@@ -77,7 +77,7 @@ int main(void){
 		}
 	}
 	cudaMemcpy(lattice, lattice_d, size_i, cudaMemcpyDeviceToHost);
-	std::cout << std::setprecision(5) << "\n\n total: "  << (clock() - timer) / (double) CLOCKS_PER_SEC << "s \n\n";
+	std::cout << std::setprecision(10) << "\n\n total: "  << (clock() - timer) / (float) CLOCKS_PER_SEC << "s \n\n";
 	
 	if (EXPORT_PBM){
 		pbm.open ("output.pbm");

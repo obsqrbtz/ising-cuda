@@ -32,12 +32,12 @@ int main(void) {
 		if ((((double)rand() / (RAND_MAX))) < 0.5) lattice[i] = 1;
 		else lattice[i] = -1;
 	}
-
+// pow(sqrt(2), 3) = 2.828427124746f
 	for (int k = 0; k < SWEEPS; k++) {
 		for (int idx = 0; idx < N * N; idx++) {
 			int i = idx / N, j = idx % N;
 			float H = -(J) * lattice[idx] * (lattice[UP] + lattice[DOWN] + lattice[LEFT] + lattice[RIGHT] 
-			+ (lattice[UPLEFT] + lattice[UPRIGHT] + lattice[DOWNLEFT] + lattice[DOWNRIGHT]) / powf(sqrtf(2), 3));
+			+ (lattice[UPLEFT] + lattice[UPRIGHT] + lattice[DOWNLEFT] + lattice[DOWNRIGHT]) / 2.828427124746f);
 			if (H > 0 || (((double)rand() / (RAND_MAX))) < expf(2 * H / TEMP)) lattice[idx] *= -1;
 		}
 		if (SHOW_PROGRESSBAR){
@@ -54,7 +54,7 @@ int main(void) {
 		}
 	}
 
-	std::cout << std::setprecision(5) << "\n\n" << (clock() - timer) / (double) CLOCKS_PER_SEC << "s\n\n";
+	std::cout << std::setprecision(10) << "\n\n" << (clock() - timer) / (float) CLOCKS_PER_SEC << "s\n\n";
 	if (EXPORT_PBM){
 		pbm.open ("output_cpu.pbm");
 		pbm << "P1\n" << N << " " << N << "\n";
