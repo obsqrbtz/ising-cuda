@@ -77,7 +77,14 @@ int main(void){
 		}
 	}
 	cudaMemcpy(lattice, lattice_d, size_i, cudaMemcpyDeviceToHost);
+	float M = 0;
+	for (int i = 0; i < N * N; i++){
+		M += lattice[i];
+	}
+	M = M / (N * N);
+
 	std::cout << std::setprecision(10) << "\n\n total: "  << (clock() - timer) / (float) CLOCKS_PER_SEC << "s \n\n";
+	std::cout << std::setprecision(10) << "M: "  << M << "\n\n";
 	
 	if (EXPORT_PBM){
 		pbm.open ("output.pbm");

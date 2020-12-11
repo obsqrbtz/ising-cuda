@@ -1,15 +1,15 @@
-#define EXPORT_PBM false
+#define EXPORT_PBM true
 #define SHOW_PROGRESSBAR false
 
-#define BLOCKS 16384
+#define BLOCKS 1024
 #define THREADS 1024
 
-#define N 16384
+#define N 1024
 
-#define SWEEPS 100
+#define SWEEPS 1000
 
 // Tc = 2.269
-#define TEMP 1.0
+#define TEMP 4.0
 #define J 1
 
 #define UP ((i - 1 + N) % N) * N + j
